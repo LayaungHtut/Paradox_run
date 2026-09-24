@@ -1,7 +1,8 @@
 import tailwindcss from '@tailwindcss/vite';
 import { defineConfig } from 'vitest/config';
 import { playwright } from '@vitest/browser-playwright';
-import adapter from '@sveltejs/adapter-node';
+import nodeAdapter from '@sveltejs/adapter-node';
+import staticAdapter from '@sveltejs/adapter-static';
 import { sveltekit } from '@sveltejs/kit/vite';
 
 export default defineConfig({
@@ -15,8 +16,11 @@ export default defineConfig({
 			},
 
 			// adapter-node: the leaderboard needs a long-lived server with a writable data directory
-			// (see docs/ARCHITECTURE.md D6 and docs/DEPLOYMENT.md).
-			adapter: adapter()
+			// (see docs/ARCHITECTURE.md D6 and docs/DEPLOYMENT.md). VITE_STATIC_BUILD=1 builds a static
+			// SPA instead (Netlify & co.): the game fully works, the online layer reports itself off.
+			adapter: process.env.VITE_STATIC_BUILD
+				? staticAdapter({ fallback: 'index.html' })
+				: nodeAdapter()
 		})
 	],
 	test: {

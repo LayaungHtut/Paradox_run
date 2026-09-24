@@ -35,6 +35,14 @@ no persistent writable disk, so the leaderboard would reset. The storage layer i
 The core game needs no server at all: a static host would serve a fully playable offline game, but
 leaderboards, daily boards and ghost challenges would show "unavailable".
 
+## Static build (Netlify)
+
+`netlify.toml` builds with `VITE_STATIC_BUILD=1`, which swaps adapter-node for adapter-static (SPA
+fallback to `index.html`) and turns the API client off. The whole game works, including local progress,
+the daily puzzle and your best ghost. Leaderboards, verified ranks and ghost challenge links show
+"online features are off in this build". To deploy, import the GitHub repo in the Netlify dashboard; the
+build settings come from `netlify.toml`. Build it locally with `VITE_STATIC_BUILD=1 npm run build`.
+
 ## Data and limits
 
 - One JSON file, written atomically (temp file + rename), debounced 250 ms. Each board keeps the best

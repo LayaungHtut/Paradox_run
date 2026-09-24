@@ -20,7 +20,12 @@ export class ApiFailure extends Error {
 	}
 }
 
+/** Static builds (VITE_STATIC_BUILD) ship without the /api server. */
+const STATIC_BUILD = !!import.meta.env.VITE_STATIC_BUILD;
+
 async function request<T>(path: string, init?: RequestInit, timeoutMs = 8000): Promise<T> {
+	// 404, not 0: a missing server is not "offline", so runs are not queued for retry
+	if (STATIC_BUILD) throw new ApiFailure('online features are off in this build', 404);
 	const ctrl = new AbortController();
 	const timer = setTimeout(() => ctrl.abort(), timeoutMs);
 	try {

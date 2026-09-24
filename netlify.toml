@@ -1,0 +1,21 @@
+# Static deploy: the game only. Leaderboards, verified ranks and ghost challenge links need the
+# Node server (adapter-node, see docs/DEPLOYMENT.md) and report themselves unavailable here.
+[build]
+  command = "npm run build"
+  publish = "build"
+
+[build.environment]
+  NODE_VERSION = "22"
+  VITE_STATIC_BUILD = "1"
+
+# never answer /api with the app shell (HTML parsed as JSON); a plain 404 keeps failures clean
+[[redirects]]
+  from = "/api/*"
+  to = "/404-api"
+  status = 404
+
+# client-side routing: every page is the SPA shell
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
