@@ -10,6 +10,12 @@ import { PAL } from './palette';
 
 const FRACTURE_S = 0.6;
 
+export interface LoopBarRect {
+	x: number;
+	y: number;
+	w: number;
+}
+
 interface Fracture {
 	x: number;
 	y: number;
@@ -23,6 +29,8 @@ export class OverlayLayer {
 	private fractures: Fracture[] = [];
 	private dpr = 1;
 	private cssW = 1;
+	/** where the HUD wants the loop bar, in CSS px (null: default top-centre placement) */
+	loopBar: LoopBarRect | null = null;
 
 	resize(ctx: CanvasRenderingContext2D, dpr: number, cssW: number): void {
 		this.dpr = dpr;
@@ -176,10 +184,11 @@ export class OverlayLayer {
 		}
 	): void {
 		const d = this.dpr;
-		const barW = Math.min(360, this.cssW * 0.38) * d;
+		const slot = this.loopBar;
+		const barW = (slot ? slot.w : Math.min(360, this.cssW * 0.38)) * d;
 		const barH = 4 * d;
-		const x = (ctx.canvas.width - barW) / 2;
-		const y = 18 * d;
+		const x = slot ? slot.x * d : (ctx.canvas.width - barW) / 2;
+		const y = (slot ? slot.y : 18) * d;
 		const tick = o.rewind ? o.tick * (1 - easeInOut(o.rewind.t)) : o.tick;
 		const k = Math.min(1, tick / o.loopLimit);
 		const remaining = (o.loopLimit - tick) / TICK_RATE;

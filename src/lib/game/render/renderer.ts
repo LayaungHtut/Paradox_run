@@ -9,7 +9,7 @@ import { Camera } from './camera';
 import type { DrawContext } from './draw-context';
 import { buildGeometry, type LevelGeometry } from './geometry';
 import { drawBolts, MechanismLayer } from './mechanisms';
-import { OverlayLayer } from './overlays';
+import { OverlayLayer, type LoopBarRect } from './overlays';
 import { THEMES, type Theme } from './palette';
 import { Particles } from './particles';
 import { drawTiles, makePanelPattern } from './tiles';
@@ -44,6 +44,8 @@ export interface FrameState {
 }
 
 const VIEW_TILES_H = 12;
+const MIN_TILES_W = 20;
+const MIN_TILES_W_PORTRAIT = 16;
 /** max canvas pixels (≈0.9 MP) — beyond this, phones spend frame time rasterizing, not playing */
 const PIXEL_BUDGET = 900_000;
 
@@ -106,9 +108,11 @@ export class Renderer {
 		this.canvas.width = Math.round(cssW * this.dpr);
 		this.canvas.height = Math.round(cssH * this.dpr);
 		// fit ~12 tiles vertically (big, readable sprites on phones), but never fewer than 20 horizontally
+		// (16 on portrait screens: every level fits vertically there, so trade width for sprite size)
+		const minTilesW = cssW < cssH ? MIN_TILES_W_PORTRAIT : MIN_TILES_W;
 		this.scale = Math.min(
 			this.canvas.height / (VIEW_TILES_H * TILE),
-			this.canvas.width / (20 * TILE)
+			this.canvas.width / (minTilesW * TILE)
 		);
 		this.camera.viewW = this.canvas.width / this.scale;
 		this.camera.viewH = this.canvas.height / this.scale;
@@ -116,6 +120,11 @@ export class Renderer {
 		this.background.build(this.level, this.camera.viewW, this.camera.viewH);
 		this.background.resize(this.ctx, this.theme, this.canvas.height);
 		this.overlays.resize(this.ctx, this.dpr, cssW);
+	}
+
+	/** Place the loop timeline bar (CSS px, canvas-relative); null restores the default spot. */
+	setLoopBar(rect: LoopBarRect | null): void {
+		this.overlays.loopBar = rect;
 	}
 
 	get pixelsPerUnit(): number {

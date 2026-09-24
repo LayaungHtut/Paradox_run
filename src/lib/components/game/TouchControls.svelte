@@ -11,7 +11,7 @@
 </script>
 
 <div class="touch" aria-hidden="true">
-	<div class="pad">
+	<div class="pad" data-pad>
 		<div class="arrow l">
 			<svg viewBox="0 0 24 24" width="30" height="30"
 				><path
@@ -37,31 +37,36 @@
 			>
 		</div>
 	</div>
-	<div class="actions">
-		<div class="dash" data-dash>DASH</div>
-		<div class="jump">JUMP</div>
-	</div>
 	{#if showHelp}
 		<div class="help fade-up">
 			<span>Slide left thumb to run</span>
 			<span>Tap right side to jump · flick to dash</span>
 		</div>
 	{/if}
+	<div class="actions">
+		<div class="dash" data-dash>DASH</div>
+		<div class="jump">JUMP</div>
+	</div>
 </div>
 
 <style>
+	/* one bottom row: pad · help · actions; the help text wraps into whatever room is left */
 	.touch {
 		position: absolute;
-		inset: 0;
+		left: calc(18px + var(--safe-l));
+		right: calc(18px + var(--safe-r));
+		bottom: calc(18px + var(--safe-b));
+		display: flex;
+		flex-wrap: wrap;
+		align-items: flex-end;
+		justify-content: space-between;
+		gap: 12px;
 		pointer-events: none;
 		z-index: 4;
 		user-select: none;
 		-webkit-user-select: none;
 	}
 	.pad {
-		position: absolute;
-		left: calc(18px + var(--safe-l));
-		bottom: calc(18px + var(--safe-b));
 		display: flex;
 		gap: 10px;
 	}
@@ -76,9 +81,6 @@
 		border: 1px solid rgba(255, 255, 255, 0.1);
 	}
 	.actions {
-		position: absolute;
-		right: calc(18px + var(--safe-r));
-		bottom: calc(18px + var(--safe-b));
 		display: flex;
 		align-items: flex-end;
 		gap: 12px;
@@ -110,21 +112,30 @@
 		touch-action: none;
 	}
 	.help {
-		position: absolute;
-		left: 50%;
-		bottom: calc(24px + var(--safe-b));
-		transform: translateX(-50%);
+		flex: 1 1 0;
+		min-width: 0;
+		margin-bottom: 6px;
 		display: flex;
 		flex-direction: column;
 		align-items: center;
 		gap: 2px;
 		font-size: 0.7rem;
+		line-height: 1.3;
 		letter-spacing: 0.08em;
 		color: var(--color-dim);
 		text-transform: uppercase;
-		white-space: nowrap;
+		text-align: center;
+		text-wrap: balance;
 	}
-	@media (max-height: 360px) {
+	/* portrait: the row is too narrow to share, so the help sits on its own line above the controls */
+	@media (orientation: portrait) {
+		.help {
+			order: -1;
+			flex-basis: 100%;
+			margin-bottom: 8px;
+		}
+	}
+	@media (max-height: 360px), (max-width: 400px) {
 		.arrow {
 			width: 64px;
 			height: 64px;

@@ -8,12 +8,30 @@
 		fps: number | null;
 		onPause: () => void;
 		onRewind: () => void;
+		/** where the canvas should paint the loop timeline bar (CSS px), or null when the HUD is gone */
+		onBarLayout: (rect: { x: number; y: number; w: number } | null) => void;
 	}
-	let { hud, title, touch, fps, onPause, onRewind }: Props = $props();
+	let { hud, title, touch, fps, onPause, onRewind, onBarLayout }: Props = $props();
 
 	const fmt = (s: number) => s.toFixed(1);
 	let low = $derived(hud.phase === 'playing' && hud.loopTimeLeft < 3);
 	let canRewind = $derived(hud.phase === 'playing');
+
+	/** The bar is drawn on the canvas; this empty slot decides where, so CSS owns the layout. */
+	function barSlot(el: HTMLElement) {
+		const report = () => {
+			const r = el.getBoundingClientRect();
+			onBarLayout({ x: r.left, y: r.top, w: r.width });
+		};
+		const ro = new ResizeObserver(report);
+		ro.observe(el);
+		// the slot can move without resizing (HUD rows grow, safe areas change on rotation)
+		if (el.parentElement?.parentElement) ro.observe(el.parentElement.parentElement);
+		return () => {
+			ro.disconnect();
+			onBarLayout(null);
+		};
+	}
 </script>
 
 <div class="hud" data-ui>
@@ -41,6 +59,7 @@
 	</div>
 
 	<div class="center tabular" class:low>
+		<div class="bar" {@attach barSlot}></div>
 		{#if hud.phase === 'rewinding' || hud.phase === 'dying'}
 			<span class="rew">REWINDING</span>
 		{:else}
@@ -93,7 +112,12 @@
 		position: absolute;
 		inset: 0 0 auto 0;
 		display: grid;
-		grid-template-columns: 1fr auto 1fr;
+		/* sides never shrink below their content; the loop bar in the middle gives way instead */
+		grid-template-columns: minmax(max-content, 1fr) minmax(0, min(360px, 38vw)) minmax(
+				max-content,
+				1fr
+			);
+		column-gap: 12px;
 		align-items: start;
 		padding: calc(8px + var(--safe-t)) calc(10px + var(--safe-r)) 0 calc(10px + var(--safe-l));
 		pointer-events: none;
@@ -104,6 +128,7 @@
 		display: flex;
 		align-items: center;
 		gap: 10px;
+		min-width: 0;
 	}
 	.right {
 		justify-content: flex-end;
@@ -169,12 +194,20 @@
 		margin: 0 4px;
 	}
 	.center {
-		margin-top: 22px;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 8px;
+		padding-top: 10px;
 		font-size: 0.75rem;
 		font-weight: 700;
 		letter-spacing: 0.08em;
 		color: var(--color-text);
 		text-shadow: 0 1px 6px rgba(0, 0, 0, 0.7);
+	}
+	.bar {
+		width: 100%;
+		height: 4px;
 	}
 	.center.low {
 		color: var(--color-danger);
@@ -214,6 +247,25 @@
 			width: 52px;
 			justify-content: center;
 			padding: 0;
+		}
+	}
+	/* too narrow for three columns (portrait phones): bar + timer drop to a full-width second row */
+	@media (max-width: 540px) {
+		.hud {
+			grid-template-columns: minmax(0, 1fr) auto;
+		}
+		.center {
+			grid-column: 1 / -1;
+			grid-row: 2;
+			justify-self: center;
+			width: min(420px, 72vw);
+			padding-top: 6px;
+		}
+		.meta {
+			min-width: 0;
+		}
+		.title {
+			max-width: 100%;
 		}
 	}
 </style>

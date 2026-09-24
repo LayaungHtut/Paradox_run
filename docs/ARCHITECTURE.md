@@ -82,8 +82,9 @@ HUD polls at ~10 Hz, plus discrete events (loop ended, level complete). Canvas d
 **D8 — Procedural assets only.** Sprites are drawn with Canvas paths; audio is synthesised with
 WebAudio. No third-party art or music → no licensing risk and ~zero asset weight.
 
-**D9 — Landscape orientation.** Side-scrolling platforming needs horizontal read-ahead. Portrait shows a
-"rotate your device" prompt. Touch layout: left thumb ◀ ▶, right thumb tap = jump, swipe = dash.
+**D9 — Landscape-first, portrait playable.** Side-scrolling platforming needs horizontal read-ahead, so
+landscape is preferred (phones request a landscape lock when supported). Portrait still plays: the camera
+shows 16 tiles across instead of 20, the HUD drops the loop bar to a second row, and a tip suggests rotating. Touch layout: left thumb ◀ ▶, right thumb tap = jump, swipe = dash.
 
 ## Risk list
 

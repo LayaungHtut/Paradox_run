@@ -1,6 +1,6 @@
 /**
- * On phones, entering the game goes fullscreen and asks for landscape. Both are best-effort: iOS
- * Safari supports neither for web pages, so the game also shows a rotate prompt in portrait.
+ * On phones, entering the game goes fullscreen and asks for landscape (it shows more of the level).
+ * Both are best-effort: iOS Safari supports neither for web pages, so the game also plays in portrait.
  */
 export async function enterImmersive(): Promise<void> {
 	if (typeof window === 'undefined' || !matchMedia('(pointer: coarse)').matches) return;
@@ -14,6 +14,6 @@ export async function enterImmersive(): Promise<void> {
 		const o = screen.orientation as ScreenOrientation & { lock?: (o: string) => Promise<void> };
 		await o.lock?.('landscape');
 	} catch {
-		/* unsupported — the rotate prompt covers it */
+		/* unsupported — portrait layout covers it */
 	}
 }

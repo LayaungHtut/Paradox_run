@@ -188,6 +188,7 @@
 					{fps}
 					onPause={() => controller?.togglePause()}
 					onRewind={() => controller?.requestRewind()}
+					onBarLayout={(r) => controller?.setLoopBar(r)}
 				/>
 			{/if}
 
@@ -203,6 +204,7 @@
 					<h1>{heading}</h1>
 					<p>{level.def.tagline}</p>
 					<div class="go">{touch ? 'Move to start' : 'Move with A / D or ← → to start'}</div>
+					{#if touch}<div class="sideways">Tip: turn sideways for a wider view</div>{/if}
 				</div>
 			{:else if readyPrompt && hud}
 				<div class="ready fade-up">
@@ -245,31 +247,6 @@
 			{/if}
 		</div>
 	{/key}
-
-	{#if touch}
-		<div class="rotate" role="alert">
-			<svg viewBox="0 0 24 24" width="48" height="48"
-				><rect
-					x="7"
-					y="3"
-					width="10"
-					height="18"
-					rx="2"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="1.6"
-				/><path
-					d="M20 14a8 8 0 0 1-6 6"
-					fill="none"
-					stroke="currentColor"
-					stroke-width="1.6"
-					stroke-linecap="round"
-				/></svg
-			>
-			<p>Turn your phone sideways</p>
-			<button class="btn" onclick={quit}>Back to menu</button>
-		</div>
-	{/if}
 </div>
 
 <style>
@@ -367,26 +344,24 @@
 		border-color: rgba(185, 155, 255, 0.5);
 		color: #e4dbff;
 	}
-	.rotate {
+	.sideways {
 		display: none;
 	}
 	@media (orientation: portrait) {
-		.rotate {
-			position: absolute;
-			inset: 0;
-			z-index: 50;
-			display: grid;
-			place-content: center;
-			justify-items: center;
-			gap: 12px;
-			background: var(--color-ink);
+		.sideways {
+			display: block;
+			margin-top: 6px;
+			font-size: 0.72rem;
 			color: var(--color-dim);
-			font-size: 0.9rem;
-			letter-spacing: 0.08em;
-			text-transform: uppercase;
 		}
-		.rotate svg {
-			animation: tilt 2s ease-in-out infinite;
+	}
+	/* portrait phones: the HUD takes two rows, so overlays start lower */
+	@media (max-width: 540px) {
+		.card-intro {
+			top: max(16%, calc(112px + var(--safe-t)));
+		}
+		.toast {
+			top: calc(108px + var(--safe-t));
 		}
 	}
 	@media (max-height: 420px) {
@@ -406,12 +381,6 @@
 	@keyframes pulse {
 		50% {
 			opacity: 0.45;
-		}
-	}
-	@keyframes tilt {
-		40%,
-		70% {
-			transform: rotate(-90deg);
 		}
 	}
 </style>

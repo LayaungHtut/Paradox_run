@@ -115,7 +115,12 @@ export class GameController {
 		const parent = this.canvas.parentElement!;
 		this.input.attachTouch(parent, () => {
 			const w = parent.clientWidth;
-			return { splitX: w * 0.42, padCenterX: Math.min(150, w * 0.17) };
+			// centre the dead zone between the drawn ◀ ▶ buttons, wherever the layout put them
+			const pad = parent.querySelector('[data-pad]')?.getBoundingClientRect();
+			return {
+				splitX: w * 0.42,
+				padCenterX: pad?.width ? pad.left + pad.width / 2 : Math.min(150, w * 0.17)
+			};
 		});
 		this.resizeObserver = new ResizeObserver(() => this.resize());
 		this.resizeObserver.observe(parent);
@@ -165,6 +170,11 @@ export class GameController {
 		this.onLoopFinished('rewind');
 	}
 
+	/** The HUD reports where it left room for the loop timeline bar (CSS px, viewport-relative). */
+	setLoopBar(rect: { x: number; y: number; w: number } | null): void {
+		this.renderer.setLoopBar(rect);
+	}
+
 	resize(): void {
 		const parent = this.canvas.parentElement!;
 		const w = parent.clientWidth;
@@ -172,9 +182,12 @@ export class GameController {
 		this.canvas.style.width = `${w}px`;
 		this.canvas.style.height = `${h}px`;
 		this.renderer.resize(w, h, window.devicePixelRatio || 1);
-		// on touch screens the bottom ~quarter is under thumbs: let the camera sink so the floor sits above them
+		// on touch screens the bottom ~quarter is under thumbs: let the camera sink so the floor sits above them.
+		// In portrait the whole level fits vertically, so instead centre it between the two-row HUD
+		// (~100px) and the control strip (~200px): offsetting by the 100px difference does exactly that.
 		const touch = matchMedia('(pointer: coarse)').matches;
-		this.renderer.camera.bottomPad = touch ? this.renderer.camera.viewH * 0.24 : 0;
+		const cam = this.renderer.camera;
+		cam.bottomPad = !touch ? 0 : h > w ? 100 / this.renderer.pixelsPerUnit : cam.viewH * 0.24;
 		this.renderer.camera.snap(
 			this.session.world.player.cx,
 			this.session.world.player.cy,
